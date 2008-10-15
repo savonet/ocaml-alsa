@@ -1,0 +1,6 @@
+name = "Alsa"
+version = "@VERSION@"
+description = "OCaml bindings to alsa"
+requires = ""
+archive(byte) = "alsa.cma"
+archive(native) = "alsa.cmxa"
