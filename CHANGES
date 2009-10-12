@@ -1,4 +1,4 @@
-0.1.4 ()
+0.1.4 (2008-10-11)
 =====
 * Added support for --enable-debugging configure option
 * Added NO_CUSTOM to build
