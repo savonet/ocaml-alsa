@@ -44,7 +44,12 @@ exception Device_busy
 (** Function was called with an invalid argument. *)
 exception Invalid_argument
 
-exception Broken_pipe
+(** This error can happen when device is physically 
+  * removed (for example some hotplug devices like USB 
+  * or PCMCIA, CardBus or ExpressCard can be removed on the fly). *)
+exception Device_removed
+
+exception Interrupted
 
 exception Unknown_error of int
 
@@ -53,9 +58,9 @@ type direction =
   | Dir_eq
   | Dir_up
 
-(** Get an error message corresponding to an error number (given by an
-  * [Unknown_error] exception). *)
-val string_of_error : int -> string
+(** Get an error message corresponding to an error. 
+  * Raise the given exception if it is not known. *)
+val string_of_error : exn -> string
 
 (** Do not report errors on stderr. *)
 val no_stderr_report : unit -> unit
@@ -82,7 +87,18 @@ sig
 
   val close : handle -> unit
 
+  (** Prepare PCM for use. *)
   val prepare : handle -> unit
+
+  (** Resume from suspend, no samples are lost. *)
+  val resume : handle -> unit
+
+  (** Recover the stream state from an error or suspend.
+    * This a high-level helper function building on other functions.
+    * This functions handles Interrupted, Buffer_xrun and Suspended 
+    * exceptions trying to prepare given stream for next I/O. 
+    * Raises the given exception when not recognized/used. *)
+  val recover : ?verbose:bool -> handle -> exn -> unit
 
   val start : handle -> unit
 

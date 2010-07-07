@@ -34,7 +34,9 @@ exception Device_busy
 
 exception Invalid_argument
 
-exception Broken_pipe
+exception Device_removed
+
+exception Interrupted
 
 exception Unknown_error of int
 
@@ -47,12 +49,31 @@ let _ =
   Callback.register_exception "alsa_exn_io_error" IO_error;
   Callback.register_exception "alsa_exn_device_busy" Device_busy;
   Callback.register_exception "alsa_exn_invalid_argument" Invalid_argument;
-  Callback.register_exception "alsa_exn_broken_pipe" Broken_pipe;
+  Callback.register_exception "alsa_exn_device_removed" Device_removed;
+  Callback.register_exception "alsa_exn_interrupted" Interrupted;
   Callback.register_exception "alsa_exn_unknown_error" (Unknown_error 0)
 
 external no_stderr_report : unit -> unit = "ocaml_snd_no_stderr_report"
 
 external string_of_error : int -> string = "ocaml_snd_string_of_error"
+
+external int_of_error : string -> int = "ocaml_snd_int_of_error"
+
+let int_of_error e = 
+  let f = int_of_error in
+  match e with
+    | Buffer_xrun      -> f "alsa_exn_buffer_xrun"
+    | Bad_state        -> f "alsa_exn_bad_state"
+    | Suspended        -> f "alsa_exn_suspended"
+    | IO_error         -> f "alsa_exn_io_error"
+    | Device_busy      -> f "alsa_exn_device_busy"
+    | Invalid_argument -> f "alsa_exn_invalid_argument"
+    | Device_removed   -> f "alsa_exn_device_removed"
+    | Interrupted      -> f "alsa_exn_interrupted"
+    | Unknown_error x  -> x
+    | _                -> raise e
+
+let string_of_error e = string_of_error (int_of_error e)
 
 module Pcm =
 struct
@@ -71,6 +92,13 @@ struct
   external close : handle -> unit = "ocaml_snd_pcm_close"
 
   external prepare : handle -> unit = "ocaml_snd_pcm_prepare"
+
+  external resume : handle -> unit = "ocaml_snd_pcm_resume"
+
+  external recover : handle -> int -> bool -> unit = "ocaml_snd_pcm_recover"
+
+  let recover ?(verbose=false) h e = 
+    recover h (int_of_error e) verbose 
 
   external start : handle -> unit = "ocaml_snd_pcm_start"
 

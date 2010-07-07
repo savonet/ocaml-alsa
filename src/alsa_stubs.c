@@ -124,26 +124,67 @@ static void check_for_err(int ret)
 
   switch(-ret)
   {
-    case 5:
+    case EIO:
       caml_raise_constant(*caml_named_value("alsa_exn_io_error"));
       break;
 
-    case 16:
+    case EBUSY:
       caml_raise_constant(*caml_named_value("alsa_exn_device_busy"));
       break;
 
-    case 22:
+    case EINVAL:
       caml_raise_constant(*caml_named_value("alsa_exn_invalid_argument"));
       break;
 
-    case 32:
-      caml_raise_constant(*caml_named_value("alsa_exn_broken_pipe"));
+    case EPIPE:
+      caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
+      break;
+
+    case ESTRPIPE:
+      caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
+      break;
+
+    case EBADFD:
+      caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
+      break;
+
+    case EINTR:
+      caml_raise_constant(*caml_named_value("alsa_exn_interrupted"));
+      break;
+
+    case ENOTTY:
+    case ENODEV:
+      caml_raise_constant(*caml_named_value("alsa_exn_device_busy"));
       break;
 
     default:
       caml_raise_with_arg(*caml_named_value("alsa_exn_unknown_error"), Val_int(-ret));
       break;
   }
+}
+
+CAMLprim value ocaml_snd_int_of_error(value name)
+{
+  CAMLparam1(name);
+  char *s = String_val(name);
+  if (!strcmp(s,"alsa_exn_io_error"))
+    CAMLreturn(Val_int(-EIO));
+  if (!strcmp(s,"alsa_exn_device_busy"))
+    CAMLreturn(Val_int(-EBUSY));
+  if (!strcmp(s,"alsa_exn_invalid_argument"))
+    CAMLreturn(Val_int(-EINVAL));
+  if (!strcmp(s,"alsa_exn_buffer_xrun"))
+    CAMLreturn(Val_int(-EPIPE));
+  if (!strcmp(s,"alsa_exn_suspended"))
+    CAMLreturn(Val_int(-ESTRPIPE));
+  if (!strcmp(s,"alsa_exn_bad_state"))
+    CAMLreturn(Val_int(-EBADFD));
+  if (!strcmp(s,"alsa_exn_interrupted"))
+    CAMLreturn(Val_int(-EINTR));
+  if (!strcmp(s,"alsa_exn_device_busy"))
+    CAMLreturn(Val_int(-ENODEV));
+ 
+  caml_failwith("unknown value");
 }
 
 CAMLprim value ocaml_snd_string_of_error(value n)
@@ -224,6 +265,20 @@ CAMLprim value ocaml_snd_pcm_prepare(value handle)
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_snd_pcm_resume(value handle)
+{
+  CAMLparam1(handle);
+  check_for_err(snd_pcm_resume(Pcm_handle_val(handle)));
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_snd_pcm_recover(value handle, value err, value log)
+{
+  CAMLparam1(handle);
+  check_for_err(snd_pcm_recover(Pcm_handle_val(handle),Int_val(err),Bool_val(log)));
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_snd_pcm_wait(value handle, value timeout)
 {
   CAMLparam2(handle, timeout);
@@ -253,12 +308,6 @@ CAMLprim value ocaml_snd_pcm_readi(value handle_, value dbuf, value ofs_, value 
 
   memcpy(String_val(dbuf) + ofs, buf, len * Frame_size_val(handle_));
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -283,12 +332,6 @@ CAMLprim value ocaml_snd_pcm_writei(value handle_, value sbuf, value ofs_, value
   caml_leave_blocking_section();
 
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -320,12 +363,6 @@ CAMLprim value ocaml_snd_pcm_readn(value handle_, value dbuf, value ofs_, value 
     free(buf[c]);
   }
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -357,12 +394,6 @@ CAMLprim value ocaml_snd_pcm_writen(value handle_, value sbuf, value ofs_, value
   for(c = 0; c < chans; c++)
     free(buf[c]);
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -395,12 +426,6 @@ CAMLprim value ocaml_snd_pcm_readn_float(value handle_, value dbuf, value ofs_, 
     free(buf[c]);
   }
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -433,12 +458,6 @@ CAMLprim value ocaml_snd_pcm_writen_float(value handle_, value fbuf, value ofs_,
   for(c = 0; c < chans; c++)
     free(buf[c]);
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -471,12 +490,6 @@ CAMLprim value ocaml_snd_pcm_readn_float64(value handle_, value dbuf, value ofs_
     free(buf[c]);
   }
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));
@@ -509,12 +522,6 @@ CAMLprim value ocaml_snd_pcm_writen_float64(value handle_, value fbuf, value ofs
   for(c = 0; c < chans; c++)
     free(buf[c]);
   free(buf);
-  if (ret == -EPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_buffer_xrun"));
-  else if (ret == -EBADFD)
-    caml_raise_constant(*caml_named_value("alsa_exn_bad_state"));
-  else if (ret == -ESTRPIPE)
-    caml_raise_constant(*caml_named_value("alsa_exn_suspended"));
   check_for_err(ret);
 
   CAMLreturn(Val_int(ret));

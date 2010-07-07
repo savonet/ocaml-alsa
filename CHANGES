@@ -1,3 +1,8 @@
+0.2.0 ()
+=====
+* Added resume and recover functions.
+* Cleaned exception handling.
+
 0.1.4 (2008-10-11)
 =====
 * Added support for --enable-debugging configure option
