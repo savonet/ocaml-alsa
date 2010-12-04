@@ -114,7 +114,11 @@ static int int_of_pcm_mode(value mode)
   return ans;
 }
 
-static void check_for_err(int ret)
+/* Here, we use the type snd_pcm_sframes_t
+ * which is long usually and makes sure we
+ * avoid long to int overflow in the read/write
+ * function's return value. */
+static void check_for_err(snd_pcm_sframes_t ret)
 {
   if (ret >= 0)
     return;
@@ -237,7 +241,7 @@ CAMLprim value ocaml_snd_pcm_open(value name, value stream, value mode)
 {
   CAMLparam3(name, stream, mode);
   CAMLlocal1(ans);
-  int ret;
+  snd_pcm_sframes_t ret;
   my_snd_pcm_t *hnd;
 
   ans = caml_alloc_custom(&pcm_handle_ops, sizeof(my_snd_pcm_t), 0, 1);
@@ -296,7 +300,7 @@ CAMLprim value ocaml_snd_pcm_readi(value handle_, value dbuf, value ofs_, value 
   int ofs = Int_val(ofs_);
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   char *buf;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   if (ofs + len * Frame_size_val(handle_) > caml_string_length(dbuf))
     caml_invalid_argument("buffer");
@@ -320,7 +324,7 @@ CAMLprim value ocaml_snd_pcm_writei(value handle_, value sbuf, value ofs_, value
   int ofs = Int_val(ofs_);
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   char *buf;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   if (ofs + len * Frame_size_val(handle_) > caml_string_length(sbuf))
     caml_invalid_argument("buffer");
@@ -346,7 +350,7 @@ CAMLprim value ocaml_snd_pcm_readn(value handle_, value dbuf, value ofs_, value 
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   char **buf;
   int c;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   /* TODO: check the size of dbuf */
   buf = malloc(chans * sizeof(char*));
@@ -377,7 +381,7 @@ CAMLprim value ocaml_snd_pcm_writen(value handle_, value sbuf, value ofs_, value
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   char **buf;
   int c;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   /* TODO: check the size of sbuf */
   buf = malloc(chans * sizeof(char*));
@@ -408,7 +412,7 @@ CAMLprim value ocaml_snd_pcm_readn_float(value handle_, value dbuf, value ofs_, 
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   float **buf;
   int c, i;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   /* TODO: check the size of dbuf */
   buf = malloc(chans * sizeof(float*));
@@ -440,7 +444,7 @@ CAMLprim value ocaml_snd_pcm_writen_float(value handle_, value fbuf, value ofs_,
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   float **buf;
   int c, i;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   /* TODO: check the size of fbuf */
   buf = malloc(chans * sizeof(float*));
@@ -472,7 +476,7 @@ CAMLprim value ocaml_snd_pcm_readn_float64(value handle_, value dbuf, value ofs_
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   double **buf;
   int c, i;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   /* TODO: check the size of fbuf */
   buf = malloc(chans * sizeof(double*));
@@ -504,7 +508,7 @@ CAMLprim value ocaml_snd_pcm_writen_float64(value handle_, value fbuf, value ofs
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   double **buf;
   int c, i;
-  int ret;
+  snd_pcm_sframes_t ret;
 
   /* TODO: check the size of fbuf */
   buf = malloc(chans * sizeof(double*));
@@ -530,7 +534,7 @@ CAMLprim value ocaml_snd_pcm_writen_float64(value handle_, value fbuf, value ofs
 CAMLprim value ocaml_snd_pcm_start(value handle)
 {
   CAMLparam1(handle);
-  int ret;
+  snd_pcm_sframes_t ret;
 
   ret = snd_pcm_start(Pcm_handle_val(handle));
   check_for_err(ret);
