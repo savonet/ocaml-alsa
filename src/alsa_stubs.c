@@ -64,6 +64,7 @@ static struct custom_operations pcm_handle_ops =
 #define Frame_size_val(v) Pcm_val(v)->frame_size
 
 #define int_of_direction(dir) (Int_val(dir)-1)
+#define direction_of_int(dir) (Val_int(dir+1))
 
 static int int_of_pcm_stream(value stream)
 {
@@ -737,6 +738,36 @@ CAMLprim value ocaml_snd_pcm_set_periods(value handle, value params, value perio
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_snd_pcm_get_periods_min(value params)
+{
+  CAMLparam1(params);
+  CAMLlocal1(result);
+  int ret, dir ;
+  unsigned int periods ;
+
+  ret = snd_pcm_hw_params_get_periods_min(Hw_params_val(params), &periods, &dir);
+  check_for_err(ret);
+  result = caml_alloc_tuple(2);
+  Store_field(result,0,Val_int(periods));
+  Store_field(result,1,direction_of_int(dir));
+  CAMLreturn(result);
+}
+
+CAMLprim value ocaml_snd_pcm_get_periods_max(value params)
+{
+  CAMLparam1(params);
+  CAMLlocal1(result);
+  int ret, dir ;
+  unsigned int periods ;
+
+  ret = snd_pcm_hw_params_get_periods_max(Hw_params_val(params), &periods, &dir);
+  check_for_err(ret);
+  result = caml_alloc_tuple(2);
+  Store_field(result,0,Val_int(periods));
+  Store_field(result,1,direction_of_int(dir));
+  CAMLreturn(result);
+}
+
 CAMLprim value ocaml_snd_pcm_set_buffer_size(value handle, value params, value size)
 {
   CAMLparam3(handle, params, size);
@@ -762,6 +793,16 @@ CAMLprim value ocaml_snd_pcm_get_buffer_size_min(value params)
   snd_pcm_uframes_t ans;
 
   check_for_err(snd_pcm_hw_params_get_buffer_size_min(Hw_params_val(params), &ans));
+
+  CAMLreturn(Val_int(ans));
+}
+
+CAMLprim value ocaml_snd_pcm_get_buffer_size_max(value params)
+{
+  CAMLparam1(params);
+  snd_pcm_uframes_t ans;
+
+  check_for_err(snd_pcm_hw_params_get_buffer_size_max(Hw_params_val(params), &ans));
 
   CAMLreturn(Val_int(ans));
 }

@@ -4,6 +4,7 @@
   error codes to avoid int overflow.
   Thanks to Peter Retep for reporting
   and patching!
+* Added get_periods_{min,max} and get_buffer_max
 
 0.2.0 (2010-08-19)
 =====

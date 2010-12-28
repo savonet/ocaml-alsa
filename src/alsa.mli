@@ -192,13 +192,19 @@ sig
   (** Set the number of periods. *)
   val set_periods : handle -> params -> int -> direction -> unit
 
+  (** Get the number of periods. *)
+  val get_periods_min : params -> int*direction
+  val get_periods_max : params -> int*direction
+
   (** Set the buffer size in {i frames}. *)
   val set_buffer_size : handle -> params -> int -> unit
 
   (** Set the buffer size near a value in {i frames}. *)
   val set_buffer_size_near : handle -> params -> int -> int
 
+  (* Get the buffer's size. *)
   val get_buffer_size_min : params -> int
+  val get_buffer_size_max : params -> int
 
   (** Set blocking mode ([true] means non-blocking). *)
   val set_nonblock : handle -> bool -> unit

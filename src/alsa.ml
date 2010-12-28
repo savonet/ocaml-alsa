@@ -156,11 +156,17 @@ struct
 
   external set_periods : handle -> params -> int -> direction -> unit = "ocaml_snd_pcm_set_periods"
 
+  external get_periods_max : params -> int*direction = "ocaml_snd_pcm_get_periods_max"
+
+  external get_periods_min : params -> int*direction = "ocaml_snd_pcm_get_periods_min"
+
   external set_buffer_size : handle -> params -> int -> unit = "ocaml_snd_pcm_set_buffer_size"
 
   external set_buffer_size_near : handle -> params -> int -> int = "ocaml_snd_pcm_set_buffer_size_near"
 
   external get_buffer_size_min : params -> int = "ocaml_snd_pcm_get_buffer_size_min"
+
+  external get_buffer_size_max : params -> int = "ocaml_snd_pcm_get_buffer_size_max"
 
   external set_nonblock : handle -> bool -> unit = "ocaml_snd_pcm_set_nonblock"
 
