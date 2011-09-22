@@ -19,18 +19,7 @@ AC_PROG_CC()
 AC_CHECK_TOOL([AR],[ar],no)
 AC_SUBST(AR)
 PKG_PROG_PKG_CONFIG()
-#PKG_CHECK_MODULES(libasound2, alsa, , [AC_MSG_ERROR(libasound2 not found.)])
-
-# PKG_CHECK_MODULES loses when you need --libs-only-[lL]
-if ! $PKG_CONFIG --exists alsa; then
-        AC_MSG_ERROR([libasound2 not found])
-fi
-libasound2_CFLAGS=`$PKG_CONFIG --cflags alsa`
-AC_SUBST([libasound2_CFLAGS])
-libasound2_LIBS=`$PKG_CONFIG --libs-only-l alsa`
-AC_SUBST([libasound2_LIBS])
-libasound2_LDFLAGS=`$PKG_CONFIG --libs-only-L alsa`
-AC_SUBST([libasound2_LDFLAGS])
+PKG_CONFIG_CHECK_MODULE([alsa])
 
 # substitutions to perform
 AC_SUBST(VERSION)
