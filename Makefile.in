@@ -6,7 +6,7 @@ DISTFILES := @AUTOCONF_INSTALL_FILES@ CHANGES COPYING Makefile.in README \
 	src/*.ml src/*.mli src/*.c src/Makefile.in src/META.in \
 	src/OCamlMakefile \
 	examples/*.ml examples/Makefile examples/OCamlMakefile \
-	doc/html
+	doc
 VERSION = @VERSION@
 
 all clean install uninstall:
