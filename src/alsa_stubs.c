@@ -228,6 +228,7 @@ static struct custom_operations hw_params_ops =
 
 static value create_hw_params()
 {
+  value ans;
   snd_pcm_hw_params_t *params;
 
   check_for_err(snd_pcm_hw_params_malloc(&params));
