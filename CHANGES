@@ -1,6 +1,6 @@
 0.2.3 (2016-11-18)
 =====
-* Fix CAMLlocal bug (PR#1).
+* Fix CAMLlocal bug (#1).
 
 0.2.2 (2015-07-29)
 =====
