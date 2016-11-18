@@ -24,23 +24,25 @@
   * @author Samuel Mimram
   *)
 
-(* $Id$ *)
-
 (** Get the ALSA sound library version in ASCII format. *)
 val get_version : unit -> string
 
 (** A buffer underrun / overrun occured. *)
 exception Buffer_xrun
+
 (** PCM is not in the right state. *)
 exception Bad_state
+
 (** A suspend event occurred (stream is suspended and waiting for an application
   * recovery). *)
 exception Suspended
 
 (** Input/output error. *)
 exception IO_error
+
 (** Device or resource was busy. *)
 exception Device_busy
+
 (** Function was called with an invalid argument. *)
 exception Invalid_argument
 
