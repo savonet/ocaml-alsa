@@ -22,12 +22,11 @@
  * @author Samuel Mimram
  */
 
-/* $Id$ */
-
 #include <string.h>
 #include <alsa/asoundlib.h>
 
 #include <caml/alloc.h>
+#include <caml/bigarray.h>
 #include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -462,6 +461,75 @@ CAMLprim value ocaml_snd_pcm_writen_float(value handle_, value fbuf, value ofs_,
 
   for(c = 0; c < chans; c++)
     free(buf[c]);
+  free(buf);
+  check_for_err(ret);
+
+  CAMLreturn(Val_int(ret));
+}
+
+CAMLprim value ocaml_snd_pcm_readn_float_ba(value handle_, value dbuf)
+{
+  CAMLparam2(handle_, dbuf);
+  int chans = Wosize_val(dbuf);
+  snd_pcm_t *handle = Pcm_handle_val(handle_);
+  int len = 0;
+  float **buf;
+  struct caml_ba_array *ba;
+  snd_pcm_sframes_t ret;
+  int c;
+
+  buf = malloc(chans * sizeof(float*));
+  for(c = 0; c < chans; c++)
+    {
+      ba = Caml_ba_array_val(Field(dbuf, c));
+      if (c == 0)
+        len = ba->dim[0];
+      else
+        {
+          if (ba->dim[0] != len)
+            caml_failwith("Invalid argument");
+        }
+      buf[c] = ba->data;
+    }
+
+  caml_enter_blocking_section();
+  ret = snd_pcm_readn(handle, (void**)buf, len);
+  caml_leave_blocking_section();
+
+  free(buf);
+  check_for_err(ret);
+
+  CAMLreturn(Val_int(ret));
+}
+
+CAMLprim value ocaml_snd_pcm_writen_float_ba(value handle_, value fbuf)
+{
+  CAMLparam2(handle_, fbuf);
+  int chans = Wosize_val(fbuf);
+  snd_pcm_t *handle = Pcm_handle_val(handle_);
+  int len = 0;
+  float **buf = malloc(chans * sizeof(float));
+  snd_pcm_sframes_t ret;
+  struct caml_ba_array *ba;
+  int c;
+
+  for(c = 0; c < chans; c++)
+  {
+    ba = Caml_ba_array_val(Field(fbuf, c));
+    if (c == 0)
+      len = ba->dim[0];
+    else
+      {
+        if (ba->dim[0] != len)
+          caml_failwith("Invalid argument");
+      }
+    buf[c] = ba->data;
+  }
+
+  caml_enter_blocking_section();
+  ret = snd_pcm_writen(handle, (void**)buf, len);
+  caml_leave_blocking_section();
+
   free(buf);
   check_for_err(ret);
 

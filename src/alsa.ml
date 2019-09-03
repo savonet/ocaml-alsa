@@ -122,6 +122,10 @@ struct
 
   external writen_float : handle -> float array array -> int -> int -> int = "ocaml_snd_pcm_writen_float"
 
+  external readn_float_ba : handle -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array -> int = "ocaml_snd_pcm_readn_float_ba"
+
+  external writen_float_ba : handle -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array -> int = "ocaml_snd_pcm_writen_float_ba"
+
   external readn_float64 : handle -> float array array -> int -> int -> int = "ocaml_snd_pcm_readn_float64"
 
   external writen_float64 : handle -> float array array -> int -> int -> int = "ocaml_snd_pcm_writen_float64"

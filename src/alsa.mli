@@ -138,6 +138,10 @@ sig
 
   val writen_float : handle -> float array array -> int -> int -> int
 
+  val readn_float_ba : handle -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array -> int
+
+  val writen_float_ba : handle -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array -> int
+
   val readn_float64 : handle -> float array array -> int -> int -> int
 
   val writen_float64 : handle -> float array array -> int -> int -> int

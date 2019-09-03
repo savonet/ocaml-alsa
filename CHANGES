@@ -1,3 +1,7 @@
+0.2.4 (unreleased)
+=====
+* Add `readn_float_ba` and `writen_float_ba`.
+
 0.2.3 (2016-11-18)
 =====
 * Fix CAMLlocal bug (#1).
