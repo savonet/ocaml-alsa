@@ -27,6 +27,7 @@ OCAMLLIBPATH = @CAMLLIBPATH@
 SOURCES = alsa.mli alsa.ml alsa_stubs.c
 RESULT = alsa
 OCAMLDOCFLAGS = -stars
+ANNOTATE = true
 LIBINSTALL_FILES = $(wildcard *.mli *.cmi *.cma *.cmxa *.cmx *.a *.so)
 ACLIBS = @LIBS@
 LDFLAGS = @LDFLAGS@
