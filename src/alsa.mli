@@ -52,13 +52,9 @@ exception Invalid_argument
 exception Device_removed
 
 exception Interrupted
-
 exception Unknown_error of int
 
-type direction =
-  | Dir_down
-  | Dir_eq
-  | Dir_up
+type direction = Dir_down | Dir_eq | Dir_up
 
 (** Get an error message corresponding to an error. 
   * Raise the given exception if it is not known. *)
@@ -67,8 +63,7 @@ val string_of_error : exn -> string
 (** Do not report errors on stderr. *)
 val no_stderr_report : unit -> unit
 
-module Pcm :
-sig
+module Pcm : sig
   (** Handle to a device. *)
   type handle
 
@@ -77,16 +72,15 @@ sig
 
   (** Wanted stream. *)
   type stream =
-    | Playback (** Playback stream. *)
-    | Capture (** Capture stream. *)
+    | Playback  (** Playback stream. *)
+    | Capture  (** Capture stream. *)
 
   (** Modes for opening a stream. *)
   type mode =
-    | Async (** Asynchronous notification (not supported yet). *)
-    | Non_blocking (** Non blocking I/O. *)
+    | Async  (** Asynchronous notification (not supported yet). *)
+    | Non_blocking  (** Non blocking I/O. *)
 
   val open_pcm : string -> stream list -> mode list -> handle
-
   val close : handle -> unit
 
   (** Prepare PCM for use. *)
@@ -124,26 +118,28 @@ sig
   (** [readi handle buf ofs len] reads [len] interleaved {i frames} in [buf]
     * starting at offset [ofs] (in bytes). It returns the actual number of
     * frames read. *)
-  val readi : handle -> string -> int -> int -> int
+  val readi : handle -> bytes -> int -> int -> int
 
   (** [writei handle buf ofs len] writes [len] interleaved {i frames} of [buf]
     * starting at offset [ofs] (in bytes). *)
-  val writei : handle -> string -> int -> int -> int
+  val writei : handle -> bytes -> int -> int -> int
 
-  val readn : handle -> string array -> int -> int -> int
-
-  val writen : handle -> string array -> int -> int -> int
-
+  val readn : handle -> bytes array -> int -> int -> int
+  val writen : handle -> bytes array -> int -> int -> int
   val readn_float : handle -> float array array -> int -> int -> int
-
   val writen_float : handle -> float array array -> int -> int -> int
 
-  val readn_float_ba : handle -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array -> int
+  val readn_float_ba :
+    handle ->
+    (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
+    int
 
-  val writen_float_ba : handle -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array -> int
+  val writen_float_ba :
+    handle ->
+    (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
+    int
 
   val readn_float64 : handle -> float array array -> int -> int -> int
-
   val writen_float64 : handle -> float array array -> int -> int -> int
 
   (** Get the delay (in frames). *)
@@ -151,37 +147,34 @@ sig
 
   (** State. *)
   type state =
-    | St_open (** open *)
-    | St_setup (** setup installed *)
-    | St_prepared (** ready to start *)
-    | St_running (** running *)
-    | St_xrun (** stopped: underrun (playback) or overrun (capture) detected *)
-    | St_draining (** draining: running (playback) or stopped (capture) *)
-    | St_paused (** paused *)
-    | St_suspended (** hardware is suspended *)
-    | St_disconnected (** hardward is disconnected *)
+    | St_open  (** open *)
+    | St_setup  (** setup installed *)
+    | St_prepared  (** ready to start *)
+    | St_running  (** running *)
+    | St_xrun  (** stopped: underrun (playback) or overrun (capture) detected *)
+    | St_draining  (** draining: running (playback) or stopped (capture) *)
+    | St_paused  (** paused *)
+    | St_suspended  (** hardware is suspended *)
+    | St_disconnected  (** hardward is disconnected *)
 
   (** Get the current state. *)
   val get_state : handle -> state
 
   val get_params : handle -> params
-
   val set_params : handle -> params -> unit
 
   (** Access mode. *)
-  type access =
-    | Access_rw_interleaved
-    | Access_rw_noninterleaved
+  type access = Access_rw_interleaved | Access_rw_noninterleaved
 
   (** Set the access mode. *)
   val set_access : handle -> params -> access -> unit
 
   (** Format of audio data. *)
   type fmt =
-    | Format_s16_le (** 16 bits, little endian *)
+    | Format_s16_le  (** 16 bits, little endian *)
     | Format_s24_3le
-    | Format_float (** float 32 bit CPU endian *)
-    | Format_float64 (** float 64 bit CPU endian *)
+    | Format_float  (** float 32 bit CPU endian *)
+    | Format_float64  (** float 64 bit CPU endian *)
 
   (** Set the format of audio data. *)
   val set_format : handle -> params -> fmt -> unit
@@ -199,8 +192,9 @@ sig
   val set_periods : handle -> params -> int -> direction -> unit
 
   (** Get the number of periods. *)
-  val get_periods_min : params -> int*direction
-  val get_periods_max : params -> int*direction
+  val get_periods_min : params -> int * direction
+
+  val get_periods_max : params -> int * direction
 
   (** Set the buffer size in {i frames}. *)
   val set_buffer_size : handle -> params -> int -> unit

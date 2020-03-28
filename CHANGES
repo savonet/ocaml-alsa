@@ -1,6 +1,7 @@
-0.2.4 (unreleased)
+0.3.0 (unreleased)
 =====
 * Add `readn_float_ba` and `writen_float_ba`.
+* Switch to `bytes` for I/O operations.
 
 0.2.3 (2016-11-18)
 =====

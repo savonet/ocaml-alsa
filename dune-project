@@ -1,5 +1,5 @@
 (lang dune 2.0)
-(version 0.2.5)
+(version 0.3.0)
 (name alsa)
 (source (github savonet/ocaml-alsa))
 (license GPL-2.0)
@@ -12,6 +12,9 @@
  (name alsa)
  (synopsis "Bindings for the ALSA library which provides functions for using soundcards")
  (depends
+  (ocaml (>= 4.02.0))
   (dune (> 2.0))
   dune-configurator)
+ (conflicts
+  (liquidsoap (< 1.5.0)))
 )
