@@ -2,6 +2,7 @@
 =====
 * Add `readn_float_ba` and `writen_float_ba`.
 * Switch to `bytes` for I/O operations.
+* Siwtch to `dune` for building.
 
 0.2.3 (2016-11-18)
 =====
