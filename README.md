@@ -10,12 +10,13 @@ Prerequisites
 - ocaml >= 3.0.6 (haven't tried earlier versions)
 - libasound2 >= 1.0.14a (haven't tried earlier versions)
 - findlib >= 0.8.1 (haven't tried earlier versions)
+- dune >= 2.0
 
 Compilation
 -----------
 
 ```sh
-make all
+dune build
 ```
 
 This should build both the native and the byte-code version of the
@@ -24,8 +25,15 @@ extension library.
 Installation
 ------------
 
+Via `opam`:
+
 ```sh
-make install
+opam install alsa
+```
+
+Via `dune` (for developers):
+```sh
+dune install
 ```
 
 This should install the library file (using ocamlfind) in the appropriate place.
