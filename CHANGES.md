@@ -1,8 +1,10 @@
 0.3.0 (unreleased)
 =====
-* Add `readn_float_ba` and `writen_float_ba`.
-* Switch to `bytes` for I/O operations.
-* Siwtch to `dune` for building.
+
+- Add `readn_float_ba` and `writen_float_ba`.
+- Switch to `bytes` for I/O operations.
+- Switch to `dune` for building.
+- Start adding support for sequencers.
 
 0.2.3 (2016-11-18)
 =====

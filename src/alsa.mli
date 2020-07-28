@@ -212,3 +212,60 @@ module Pcm : sig
   (** Get the size of a frame in bytes. *)
   val get_frame_size : params -> int
 end
+
+module Sequencer : sig
+  type t
+
+  val create : string -> ?nonblocking:bool -> [ `Input | `Output | `Duplex] -> t
+
+  val set_client_name : t -> string -> unit
+
+  type port_caps = Port_cap_read | Port_cap_write | Port_cap_sync_read | Port_cap_sync_write | Port_cap_duplex | Port_cap_subs_read | Port_cap_subs_write | Port_cap_no_export
+
+  type port_type = Port_type_specific | Port_type_MIDI_generic | Port_type_MIDI_GM | Port_type_MIDI_GM2 | Port_type_MIDI_GS | Port_type_MIDI_XG | Port_type_MIDI_MT32 | Port_type_hardware | Port_type_software | Port_type_sythesizer | Port_type_port | Port_type_application
+
+  val create_port : t -> string -> port_caps list -> port_type list -> int
+
+  (** Real all possible input ports on given port. *)
+  val subscribe_read_all : t -> int -> unit
+
+  module Event : sig
+    type note =
+      {
+        note_channel : int;
+        note_note : int;
+        note_velocity : int;
+        note_off_velocity : int;
+        note_duration : int;
+      }
+
+    type controller =
+      {
+        controller_channel : int;
+        controller_param : int;
+        controller_value : int;
+      }
+
+    type t =
+      | System of int * int
+      | Result of int * int
+      | Note of note
+      | Note_on of note
+      | Note_off of note
+      | Keypress of note
+      | Controller of controller
+      | Program_change of controller
+      | Channel_pressure of controller
+      | Pitch_bend of controller
+  end
+
+  type time
+
+  type event =
+    {
+      ev_time : time;
+      ev_event : Event.t;
+    }
+
+  val input_event : t -> event
+end

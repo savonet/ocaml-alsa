@@ -48,6 +48,8 @@ typedef struct my_snd_pcm_t
   int frame_size;
 } my_snd_pcm_t;
 
+/********** PCM **********/
+
 static struct custom_operations pcm_handle_ops =
 {
   "ocaml_alsa_pcm_handle",
@@ -904,4 +906,180 @@ CAMLprim value ocaml_snd_pcm_set_nonblock(value handle, value nonblocking)
   check_for_err(snd_pcm_nonblock(Pcm_handle_val(handle), Bool_val(nonblocking)));
 
   CAMLreturn(Val_unit);
+}
+
+/********** Sequencer **********/
+
+static struct custom_operations seq_handle_ops =
+{
+  "ocaml_alsa_seq_handle",
+  NULL,
+  custom_compare_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default
+};
+
+#define Seq_val(v) (*((snd_seq_t**)Data_custom_val(v)))
+
+CAMLprim value ocaml_snd_seq_open(value name, value stream, value mode)
+{
+  CAMLparam3(name, stream, mode);
+  CAMLlocal1(seq);
+
+  int ret;
+
+  seq = caml_alloc_custom(&seq_handle_ops, sizeof(snd_seq_t*), 0, 1);
+
+  ret = snd_seq_open((snd_seq_t**)Data_custom_val(seq), String_val(name), Int_val(stream), Int_val(mode));
+  check_for_err(ret);
+
+  CAMLreturn(seq);
+}
+
+CAMLprim value ocaml_snd_seq_set_client_name(value seq, value name)
+{
+  CAMLparam2(seq, name);
+  int ret;
+
+  ret = snd_seq_set_client_name(Seq_val(seq), String_val(name));
+  check_for_err(ret);
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_snd_seq_create_port(value seq, value name, value _caps, value _type)
+{
+  CAMLparam4(seq, name, _caps, _type);
+  unsigned int caps = 0;
+  unsigned int type = 0;
+  static unsigned int capsv[] = {SND_SEQ_PORT_CAP_READ, SND_SEQ_PORT_CAP_WRITE, SND_SEQ_PORT_CAP_SYNC_READ, SND_SEQ_PORT_CAP_SYNC_WRITE, SND_SEQ_PORT_CAP_DUPLEX, SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_CAP_SUBS_WRITE, SND_SEQ_PORT_CAP_NO_EXPORT};
+  static unsigned int typev[] = {SND_SEQ_PORT_TYPE_SPECIFIC, SND_SEQ_PORT_TYPE_MIDI_GENERIC, SND_SEQ_PORT_TYPE_MIDI_GM, SND_SEQ_PORT_TYPE_MIDI_GM2, SND_SEQ_PORT_TYPE_MIDI_GS, SND_SEQ_PORT_TYPE_MIDI_XG, SND_SEQ_PORT_TYPE_MIDI_MT32, SND_SEQ_PORT_TYPE_HARDWARE, SND_SEQ_PORT_TYPE_SOFTWARE, SND_SEQ_PORT_TYPE_SYNTHESIZER, SND_SEQ_PORT_TYPE_PORT, SND_SEQ_PORT_TYPE_APPLICATION};
+  int port;
+
+  while (_caps != Val_emptylist)
+    {
+      caps |= capsv[Int_val(Field(_caps, 0))];
+      _caps = Field(_caps, 1);
+    }
+  while (_type != Val_emptylist)
+    {
+      type |= typev[Int_val(Field(_type, 0))];
+      _type = Field(_type, 1);
+    }
+
+  port = snd_seq_create_simple_port(Seq_val(seq), String_val(name), caps, type);
+  check_for_err(port);
+
+  CAMLreturn(Val_int(port));
+}
+
+/* Read from every possible port */
+CAMLprim value ocaml_snd_subscribe_read_all(value _seq, value dst)
+{
+  CAMLparam2(_seq, dst);
+  snd_seq_t *seq = Seq_val(_seq);
+  snd_seq_client_info_t *cinfo;
+  snd_seq_port_info_t *pinfo;
+  snd_seq_client_info_alloca(&cinfo);
+  snd_seq_port_info_alloca(&pinfo);
+  snd_seq_client_info_set_client(cinfo, -1);
+  while (snd_seq_query_next_client(seq, cinfo) >= 0)
+    {
+      snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
+      snd_seq_port_info_set_port(pinfo, -1);
+      while (snd_seq_query_next_port(seq, pinfo) >= 0)
+        {
+          if (snd_seq_port_info_get_capability(pinfo) & (SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ) == (SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ))
+            {
+              snd_seq_addr_t sender, dest;
+              sender.client = snd_seq_client_info_get_client(cinfo);
+              sender.port = snd_seq_port_info_get_port(pinfo);
+              dest.client = snd_seq_client_id(seq);
+              dest.port = Int_val(dst);
+              snd_seq_port_subscribe_t *subs;
+              snd_seq_port_subscribe_alloca(&subs);
+              snd_seq_port_subscribe_set_sender(subs, &sender);
+              snd_seq_port_subscribe_set_dest(subs, &dest);
+              snd_seq_subscribe_port(seq, subs);
+            }
+        }
+    }
+}
+
+static value Val_note(snd_seq_ev_note_t n)
+{
+  CAMLparam0();
+  CAMLlocal1(ans);
+  ans = caml_alloc_tuple(5);
+  Store_field(ans, 0, Val_int(n.channel));
+  Store_field(ans, 1, Val_int(n.note));
+  Store_field(ans, 2, Val_int(n.velocity));
+  Store_field(ans, 3, Val_int(n.off_velocity));
+  Store_field(ans, 4, Val_int(n.duration));
+  CAMLreturn(ans);
+}
+
+static value Val_controller(snd_seq_ev_ctrl_t c)
+{
+  CAMLparam0();
+  CAMLlocal1(ans);
+  ans = caml_alloc_tuple(3);
+  Store_field(ans, 0, Val_int(c.channel));
+  Store_field(ans, 1, Val_int(c.param));
+  Store_field(ans, 2, Val_int(c.value));
+  CAMLreturn(ans);
+}
+
+
+CAMLprim value ocaml_snd_seq_event_input(value handle)
+{
+  CAMLparam1(handle);
+  CAMLlocal1(ans);
+  CAMLlocal1(event);
+
+  snd_seq_t *seq_handle = Seq_val(handle);
+  snd_seq_event_t *ev = NULL;
+  int ret;
+
+ tryagain:
+  caml_enter_blocking_section();
+  ret = snd_seq_event_input(seq_handle, &ev);
+  caml_leave_blocking_section();
+
+  check_for_err(ret);
+
+  ans = caml_alloc_tuple(2);
+
+  switch (ev->type)
+    {
+    case SND_SEQ_EVENT_NOTEON:
+      event = caml_alloc(1, 3);
+      Store_field(event, 0, Val_note(ev->data.note));
+      break;
+
+    case SND_SEQ_EVENT_NOTEOFF:
+      event = caml_alloc(1, 4);
+      Store_field(event, 0, Val_note(ev->data.note));
+      break;
+
+    case SND_SEQ_EVENT_CONTROLLER:
+      event = caml_alloc(1, 6);
+      Store_field(event, 0, Val_controller(ev->data.control));
+      break;
+
+    case SND_SEQ_EVENT_PITCHBEND:
+      event = caml_alloc(1, 9);
+      Store_field(event, 0, Val_controller(ev->data.control));
+      break;
+
+    default:
+      printf("Unhandled event type: %d\n", ev->type);
+      goto tryagain;
+      break;
+    }
+
+  Store_field(ans, 1, event);
+
+  CAMLreturn(ans);
 }
