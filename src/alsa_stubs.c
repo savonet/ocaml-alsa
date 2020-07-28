@@ -34,6 +34,7 @@
 #include <caml/misc.h>
 #include <caml/mlvalues.h>
 #include <caml/signals.h>
+#include <caml/threads.h>
 
 #include <assert.h>
 
