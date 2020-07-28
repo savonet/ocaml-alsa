@@ -1043,9 +1043,9 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
   int ret;
 
  tryagain:
-  caml_enter_blocking_section();
+  caml_release_runtime_system();
   ret = snd_seq_event_input(seq_handle, &ev);
-  caml_leave_blocking_section();
+  caml_acquire_runtime_system();
 
   check_for_err(ret);
 
