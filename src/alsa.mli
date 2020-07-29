@@ -206,6 +206,8 @@ module Pcm : sig
   (** Set the buffer size near a value in {i frames}. *)
   val set_buffer_size_near : handle -> params -> int -> int
 
+  val get_buffer_size : params -> int
+
   (* Get the buffer's size. *)
   val get_buffer_size_min : params -> int
   val get_buffer_size_max : params -> int

@@ -868,7 +868,6 @@ CAMLprim value ocaml_snd_pcm_get_period_size(value params)
   CAMLreturn(Val_int(ans));
 }
 
-
 CAMLprim value ocaml_snd_pcm_set_buffer_size(value handle, value params, value size)
 {
   CAMLparam3(handle, params, size);
@@ -886,6 +885,16 @@ CAMLprim value ocaml_snd_pcm_set_buffer_size_near(value handle, value params, va
   check_for_err(snd_pcm_hw_params_set_buffer_size_near(Pcm_handle_val(handle), Hw_params_val(params), &s));
 
   CAMLreturn(Val_int(s));
+}
+
+CAMLprim value ocaml_snd_pcm_get_buffer_size(value params)
+{
+  CAMLparam1(params);
+  snd_pcm_uframes_t ans;
+
+  check_for_err(snd_pcm_hw_params_get_buffer_size(Hw_params_val(params), &ans));
+
+  CAMLreturn(Val_int(ans));
 }
 
 CAMLprim value ocaml_snd_pcm_get_buffer_size_min(value params)
