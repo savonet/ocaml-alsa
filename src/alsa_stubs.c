@@ -511,7 +511,7 @@ CAMLprim value ocaml_snd_pcm_writen_float_ba(value handle_, value fbuf)
   int chans = Wosize_val(fbuf);
   snd_pcm_t *handle = Pcm_handle_val(handle_);
   int len = 0;
-  float **buf = malloc(chans * sizeof(float));
+  float **buf = malloc(chans * sizeof(float*));
   snd_pcm_sframes_t ret;
   struct caml_ba_array *ba;
   int c;
