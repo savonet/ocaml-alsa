@@ -1088,12 +1088,13 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
   ret = snd_seq_event_input(seq_handle, &ev);
   printf("after\n");
   caml_acquire_runtime_system();
+  printf("ret: %d\n", ret);
 
   check_for_err(ret);
 
   ans = caml_alloc_tuple(2);
 
-  printf("event: %d\n%!", ev->type);
+  printf("event: %d\n", ev->type);
 
   switch (ev->type)
     {
