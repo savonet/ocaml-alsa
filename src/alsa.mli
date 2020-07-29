@@ -222,7 +222,7 @@ end
 module Sequencer : sig
   type t
 
-  val create : string -> ?nonblocking:bool -> [ `Input | `Output | `Duplex] -> t
+  val create : string -> ?blocking:bool -> [ `Input | `Output | `Duplex] -> t
 
   val set_client_name : t -> string -> unit
 
@@ -263,6 +263,7 @@ module Sequencer : sig
       | Program_change of controller
       | Channel_pressure of controller
       | Pitch_bend of controller
+      | Unhandled of int
   end
 
   type time

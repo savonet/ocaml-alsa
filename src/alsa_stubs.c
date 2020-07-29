@@ -117,11 +117,7 @@ static int int_of_pcm_mode(value mode)
   return ans;
 }
 
-/* Here, we use the type snd_pcm_sframes_t
- * which is long usually and makes sure we
- * avoid long to int overflow in the read/write
- * function's return value. */
-static void check_for_err(snd_pcm_sframes_t ret)
+static void check_for_err(int ret)
 {
   if (ret >= 0)
     return;
@@ -164,6 +160,10 @@ static void check_for_err(snd_pcm_sframes_t ret)
       caml_raise_constant(*caml_named_value("alsa_exn_device_busy"));
       break;
 
+    case EAGAIN:
+      caml_raise_constant(*caml_named_value("alsa_exn_try_again"));
+      break;
+
     default:
       caml_raise_with_arg(*caml_named_value("alsa_exn_unknown_error"), Val_int(-ret));
       break;
@@ -173,7 +173,7 @@ static void check_for_err(snd_pcm_sframes_t ret)
 CAMLprim value ocaml_snd_int_of_error(value name)
 {
   CAMLparam1(name);
-  char *s = String_val(name);
+  const char *s = String_val(name);
   if (!strcmp(s,"alsa_exn_io_error"))
     CAMLreturn(Val_int(-EIO));
   if (!strcmp(s,"alsa_exn_device_busy"))
@@ -313,7 +313,7 @@ CAMLprim value ocaml_snd_pcm_readi(value handle_, value dbuf, value ofs_, value 
   ret = snd_pcm_readi(handle, buf, len);
   caml_leave_blocking_section();
 
-  memcpy(String_val(dbuf) + ofs, buf, len * Frame_size_val(handle_));
+  memcpy((void*)String_val(dbuf) + ofs, buf, len * Frame_size_val(handle_));
   free(buf);
   check_for_err(ret);
 
@@ -366,7 +366,7 @@ CAMLprim value ocaml_snd_pcm_readn(value handle_, value dbuf, value ofs_, value 
 
   for(c = 0; c < chans; c++)
   {
-    memcpy(String_val(Field(dbuf, c)) + ofs, buf[c], 2 * len);
+    memcpy((void*)String_val(Field(dbuf, c)) + ofs, buf[c], 2 * len);
     free(buf[c]);
   }
   free(buf);
@@ -962,17 +962,23 @@ static struct custom_operations seq_handle_ops =
 
 #define Seq_val(v) (*((snd_seq_t**)Data_custom_val(v)))
 
-CAMLprim value ocaml_snd_seq_open(value name, value stream, value mode)
+CAMLprim value ocaml_snd_seq_open(value name, value stream_, value mode_)
 {
-  CAMLparam3(name, stream, mode);
+  CAMLparam3(name, stream_, mode_);
   CAMLlocal1(seq);
 
+  int stream = Int_val(stream_);
+  int mode = Int_val(mode_);
+
+  snd_seq_t *seq_handle = NULL;
   int ret;
 
   seq = caml_alloc_custom(&seq_handle_ops, sizeof(snd_seq_t*), 0, 1);
 
-  ret = snd_seq_open((snd_seq_t**)Data_custom_val(seq), String_val(name), Int_val(stream), Int_val(mode));
+  ret = snd_seq_open(&seq_handle, String_val(name), stream, mode);
   check_for_err(ret);
+
+  Seq_val(seq) = seq_handle;
 
   CAMLreturn(seq);
 }
@@ -1015,10 +1021,11 @@ CAMLprim value ocaml_snd_seq_create_port(value seq, value name, value _caps, val
 }
 
 /* Read from every possible port */
-CAMLprim value ocaml_snd_subscribe_read_all(value _seq, value dst)
+CAMLprim value ocaml_snd_subscribe_read_all(value _seq, value _dst)
 {
-  CAMLparam2(_seq, dst);
+  CAMLparam2(_seq, _dst);
   snd_seq_t *seq = Seq_val(_seq);
+  int dst = Int_val(dst);
   snd_seq_client_info_t *cinfo;
   snd_seq_port_info_t *pinfo;
   snd_seq_client_info_alloca(&cinfo);
@@ -1032,19 +1039,22 @@ CAMLprim value ocaml_snd_subscribe_read_all(value _seq, value dst)
         {
           if (snd_seq_port_info_get_capability(pinfo) & (SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ) == (SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ))
             {
+              caml_release_runtime_system();
               snd_seq_addr_t sender, dest;
               sender.client = snd_seq_client_info_get_client(cinfo);
               sender.port = snd_seq_port_info_get_port(pinfo);
               dest.client = snd_seq_client_id(seq);
-              dest.port = Int_val(dst);
+              dest.port = dst;
               snd_seq_port_subscribe_t *subs;
               snd_seq_port_subscribe_alloca(&subs);
               snd_seq_port_subscribe_set_sender(subs, &sender);
               snd_seq_port_subscribe_set_dest(subs, &dest);
               snd_seq_subscribe_port(seq, subs);
+              caml_acquire_runtime_system();
             }
         }
     }
+  CAMLreturn(Val_unit);
 }
 
 static value Val_note(snd_seq_ev_note_t n)
@@ -1071,7 +1081,6 @@ static value Val_controller(snd_seq_ev_ctrl_t c)
   CAMLreturn(ans);
 }
 
-
 CAMLprim value ocaml_snd_seq_event_input(value handle)
 {
   CAMLparam1(handle);
@@ -1080,19 +1089,17 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
 
   snd_seq_t *seq_handle = Seq_val(handle);
   snd_seq_event_t *ev = NULL;
-  int ret;
+  int ret = 0;
+  static int n = 0;
 
- tryagain:
+  ev = malloc(sizeof(snd_seq_event_t));
+
   caml_release_runtime_system();
-  printf("before\n");
   ret = snd_seq_event_input(seq_handle, &ev);
-  printf("after\n");
   caml_acquire_runtime_system();
-  printf("ret: %d\n", ret);
 
   check_for_err(ret);
-
-  ans = caml_alloc_tuple(2);
+  assert(ev);
 
   printf("event: %d\n", ev->type);
 
@@ -1119,11 +1126,14 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
       break;
 
     default:
-      printf("Unhandled event type: %d\n", ev->type);
-      goto tryagain;
+      // TODO: change this number when adding new constructors...
+      event = caml_alloc(1, 10);
+      Store_field(event, 0, Val_int(ev->type));
       break;
     }
 
+  ans = caml_alloc_tuple(2);
+  Store_field(ans, 0, Val_unit);
   Store_field(ans, 1, event);
 
   CAMLreturn(ans);

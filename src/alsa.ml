@@ -28,11 +28,12 @@ exception Device_busy
 exception Invalid_argument
 exception Device_removed
 exception Interrupted
+exception Try_again
 exception Unknown_error of int
 
 type direction = Dir_down | Dir_eq | Dir_up
 
-let _ =
+let () =
   Callback.register_exception "alsa_exn_buffer_xrun" Buffer_xrun;
   Callback.register_exception "alsa_exn_bad_state" Bad_state;
   Callback.register_exception "alsa_exn_suspended" Suspended;
@@ -41,6 +42,7 @@ let _ =
   Callback.register_exception "alsa_exn_invalid_argument" Invalid_argument;
   Callback.register_exception "alsa_exn_device_removed" Device_removed;
   Callback.register_exception "alsa_exn_interrupted" Interrupted;
+  Callback.register_exception "alsa_exn_try_again" Try_again;
   Callback.register_exception "alsa_exn_unknown_error" (Unknown_error 0)
 
 external no_stderr_report : unit -> unit = "ocaml_snd_no_stderr_report"
@@ -188,14 +190,14 @@ module Sequencer = struct
 
   external create : string -> int -> int -> t = "ocaml_snd_seq_open"
 
-  let create name ?(nonblocking=false) stream =
+  let create name ?(blocking=true) stream =
     let stream =
       match stream with
       | `Input -> 2
       | `Output -> 1
       | `Duplex -> 3
     in
-    let mode = if nonblocking then 1 else 0 in
+    let mode = if blocking then 0 else 1 in
     create name stream mode
 
   external set_client_name : t -> string -> unit = "ocaml_snd_seq_set_client_name"
@@ -236,9 +238,10 @@ module Sequencer = struct
       | Program_change of controller
       | Channel_pressure of controller
       | Pitch_bend of controller
+      | Unhandled of int
   end
 
-  type time
+  type time = unit
 
   type event =
     {
