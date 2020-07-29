@@ -539,6 +539,25 @@ CAMLprim value ocaml_snd_pcm_writen_float_ba(value handle_, value fbuf)
   CAMLreturn(Val_int(ret));
 }
 
+CAMLprim value ocaml_snd_pcm_writei_float_ba(value handle_, value channels, value fbuf)
+{
+  CAMLparam3(handle_, channels, fbuf);
+  snd_pcm_t *handle = Pcm_handle_val(handle_);
+  int chans = Int_val(channels);
+  struct caml_ba_array *ba = Caml_ba_array_val(fbuf);
+  int len = ba->dim[0];
+  float *buf = ba->data;
+  snd_pcm_sframes_t ret;
+
+  caml_enter_blocking_section();
+  ret = snd_pcm_writei(handle, buf, len / chans);
+  caml_leave_blocking_section();
+
+  check_for_err(ret);
+
+  CAMLreturn(Val_int(ret));
+}
+
 CAMLprim value ocaml_snd_pcm_readn_float64(value handle_, value dbuf, value ofs_, value len_)
 {
   CAMLparam4(handle_, dbuf, ofs_, len_);
@@ -838,6 +857,17 @@ CAMLprim value ocaml_snd_pcm_get_periods_max(value params)
   Store_field(result,1,direction_of_int(dir));
   CAMLreturn(result);
 }
+
+CAMLprim value ocaml_snd_pcm_get_period_size(value params)
+{
+  CAMLparam1(params);
+  snd_pcm_uframes_t ans;
+
+  check_for_err(snd_pcm_hw_params_get_period_size(Hw_params_val(params), &ans, 0));
+
+  CAMLreturn(Val_int(ans));
+}
+
 
 CAMLprim value ocaml_snd_pcm_set_buffer_size(value handle, value params, value size)
 {

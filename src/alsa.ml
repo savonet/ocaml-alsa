@@ -123,6 +123,8 @@ module Pcm = struct
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
     int = "ocaml_snd_pcm_writen_float_ba"
 
+  external writei_float_ba : handle -> int -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t -> int = "ocaml_snd_pcm_writei_float_ba"
+
   external readn_float64 : handle -> float array array -> int -> int -> int
     = "ocaml_snd_pcm_readn_float64"
 
@@ -156,6 +158,8 @@ module Pcm = struct
 
   external set_periods : handle -> params -> int -> direction -> unit
     = "ocaml_snd_pcm_set_periods"
+
+  external get_period_size : params -> int = "ocaml_snd_pcm_get_period_size"
 
   external get_periods_max : params -> int * direction
     = "ocaml_snd_pcm_get_periods_max"

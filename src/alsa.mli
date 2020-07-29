@@ -139,6 +139,8 @@ module Pcm : sig
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
     int
 
+  val writei_float_ba : handle -> int -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t -> int
+
   val readn_float64 : handle -> float array array -> int -> int -> int
   val writen_float64 : handle -> float array array -> int -> int -> int
 
@@ -195,6 +197,8 @@ module Pcm : sig
   val get_periods_min : params -> int * direction
 
   val get_periods_max : params -> int * direction
+
+  val get_period_size : params -> int
 
   (** Set the buffer size in {i frames}. *)
   val set_buffer_size : handle -> params -> int -> unit
