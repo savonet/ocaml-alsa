@@ -1101,8 +1101,6 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
   check_for_err(ret);
   assert(ev);
 
-  printf("event: %d\n", ev->type);
-
   switch (ev->type)
     {
     case SND_SEQ_EVENT_NOTEON:
