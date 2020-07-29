@@ -12,7 +12,8 @@ let () =
       match (Sequencer.input_event seq).ev_event with
       | Sequencer.Event.Note_on n -> Printf.printf "note on: %d at %d\n%!" n.note_note n.note_velocity
       | Sequencer.Event.Note_off n -> Printf.printf "note off: %d\n%!" n.note_note
-      | Sequencer.Event.Controller c -> Printf.printf "controller: %d\n%!" c.controller_value
+      | Sequencer.Event.Controller c -> Printf.printf "controller: %d / %d\n%!" c.controller_value c.controller_param
+      | Sequencer.Event.Program_change c -> Printf.printf "program change: %d / %d\n%!" c.controller_value c.controller_param
       | Sequencer.Event.Pitch_bend c -> Printf.printf "pitch bend: %d\n%!" c.controller_value
       | Sequencer.Event.Unhandled n -> Printf.printf "unhandled event: %d\n%!" n
       | _ -> Printf.printf "ignored event\n%!";

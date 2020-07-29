@@ -1120,6 +1120,11 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
       Store_field(event, 0, Val_controller(ev->data.control));
       break;
 
+    case SND_SEQ_EVENT_PGMCHANGE:
+      event = caml_alloc(1, 7);
+      Store_field(event, 0, Val_controller(ev->data.control));
+      break;
+
     case SND_SEQ_EVENT_PITCHBEND:
       event = caml_alloc(1, 9);
       Store_field(event, 0, Val_controller(ev->data.control));
