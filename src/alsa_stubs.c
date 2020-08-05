@@ -1175,9 +1175,9 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_snd_seq_event_output(value handle, value port, value event)
+CAMLprim value ocaml_snd_seq_event_output(value handle, value event)
 {
-  CAMLparam3(handle, port, event);
+  CAMLparam2(handle, event);
   CAMLlocal1(v);
   event = Field(event, 0);
 
@@ -1186,7 +1186,7 @@ CAMLprim value ocaml_snd_seq_event_output(value handle, value port, value event)
   int ret = 0;
 
   snd_seq_ev_clear(&ev);
-  snd_seq_ev_set_source(&ev, Int_val(port)); // TODO: remove this and port argument?
+  //snd_seq_ev_set_source(&ev, Int_val(port));
   snd_seq_ev_set_subs(&ev);
   snd_seq_ev_set_direct(&ev);
 
