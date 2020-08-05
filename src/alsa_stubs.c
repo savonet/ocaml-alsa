@@ -1035,7 +1035,8 @@ CAMLprim value ocaml_snd_subscribe_read_all(value _seq, value _dst)
     {
       snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
       snd_seq_port_info_set_port(pinfo, -1);
-      while (snd_seq_client_info_get_client(cinfo) != 0 && snd_seq_client_info_get_client(cinfo) != snd_seq_client_id(seq) && snd_seq_query_next_port(seq, pinfo) >= 0)
+      // Avoid system device, midi through and self
+      while (snd_seq_client_info_get_client(cinfo) != 0 && snd_seq_client_info_get_client(cinfo) != 14 && snd_seq_client_info_get_client(cinfo) != snd_seq_client_id(seq) && snd_seq_query_next_port(seq, pinfo) >= 0)
         {
           if ((snd_seq_port_info_get_capability(pinfo) & (SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ)) == (SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ))
             {
@@ -1071,7 +1072,7 @@ CAMLprim value ocaml_snd_subscribe_write_all(value _seq, value _src)
     {
       snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
       snd_seq_port_info_set_port(pinfo, -1);
-      while (snd_seq_client_info_get_client(cinfo) != 0 && snd_seq_client_info_get_client(cinfo) != snd_seq_client_id(seq) && snd_seq_query_next_port(seq, pinfo) >= 0)
+      while (snd_seq_client_info_get_client(cinfo) != 0 && snd_seq_client_info_get_client(cinfo) != 14 && snd_seq_client_info_get_client(cinfo) != snd_seq_client_id(seq) && snd_seq_query_next_port(seq, pinfo) >= 0)
         {
           if ((snd_seq_port_info_get_capability(pinfo) & (SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE)) == (SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE))
             {
