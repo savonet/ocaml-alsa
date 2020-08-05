@@ -1179,7 +1179,6 @@ CAMLprim value ocaml_snd_seq_event_output(value handle, value event)
 {
   CAMLparam2(handle, event);
   CAMLlocal1(v);
-  event = Field(event, 0);
 
   snd_seq_t *seq_handle = Seq_val(handle);
   snd_seq_event_t ev;

@@ -279,5 +279,5 @@ module Sequencer : sig
 
   val input_event : t -> event
 
-  val output_event : t -> event -> unit
+  val output_event : t -> Event.t -> unit
 end

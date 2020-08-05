@@ -253,5 +253,5 @@ module Sequencer = struct
 
   external input_event : t -> event = "ocaml_snd_seq_event_input"
 
-  external output_event : t -> event -> unit = "ocaml_snd_seq_event_output"
+  external output_event : t -> Event.t -> unit = "ocaml_snd_seq_event_output"
 end
