@@ -269,7 +269,7 @@ module Sequencer : sig
       | Unhandled of int
   end
 
-  type time
+  type time = unit
 
   type event =
     {
@@ -278,4 +278,6 @@ module Sequencer : sig
     }
 
   val input_event : t -> event
+
+  val output_event : t -> int -> event -> unit
 end
