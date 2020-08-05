@@ -1057,6 +1057,42 @@ CAMLprim value ocaml_snd_subscribe_read_all(value _seq, value _dst)
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_snd_subscribe_write_all(value _seq, value _src)
+{
+  CAMLparam2(_seq, _src);
+  snd_seq_t *seq = Seq_val(_seq);
+  int src = Int_val(src);
+  snd_seq_client_info_t *cinfo;
+  snd_seq_port_info_t *pinfo;
+  snd_seq_client_info_alloca(&cinfo);
+  snd_seq_port_info_alloca(&pinfo);
+  snd_seq_client_info_set_client(cinfo, -1);
+  while (snd_seq_query_next_client(seq, cinfo) >= 0)
+    {
+      snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
+      snd_seq_port_info_set_port(pinfo, -1);
+      while (snd_seq_query_next_port(seq, pinfo) >= 0)
+        {
+          if (snd_seq_port_info_get_capability(pinfo) & (SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE) == (SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE))
+            {
+              caml_release_runtime_system();
+              snd_seq_addr_t sender, dest;
+              sender.client = snd_seq_client_id(seq);
+              sender.port = src;
+              dest.client = snd_seq_client_info_get_client(cinfo);
+              dest.port = snd_seq_port_info_get_port(pinfo);
+              snd_seq_port_subscribe_t *subs;
+              snd_seq_port_subscribe_alloca(&subs);
+              snd_seq_port_subscribe_set_sender(subs, &sender);
+              snd_seq_port_subscribe_set_dest(subs, &dest);
+              snd_seq_subscribe_port(seq, subs);
+              caml_acquire_runtime_system();
+            }
+        }
+    }
+  CAMLreturn(Val_unit);
+}
+
 static value Val_note(snd_seq_ev_note_t n)
 {
   CAMLparam0();
@@ -1090,9 +1126,6 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
   snd_seq_t *seq_handle = Seq_val(handle);
   snd_seq_event_t *ev = NULL;
   int ret = 0;
-  static int n = 0;
-
-  ev = malloc(sizeof(snd_seq_event_t));
 
   caml_release_runtime_system();
   ret = snd_seq_event_input(seq_handle, &ev);
@@ -1136,8 +1169,74 @@ CAMLprim value ocaml_snd_seq_event_input(value handle)
     }
 
   ans = caml_alloc_tuple(2);
+  Store_field(ans, 0, event);
+  Store_field(ans, 1, Val_unit);
+
+  CAMLreturn(ans);
+}
+
+/*
+CAMLprim value ocaml_snd_seq_event_output(value handle, value port, value event)
+{
+  CAMLparam3(handle, port, event);
+  event = Field(event, 0);
+
+  snd_seq_t *seq_handle = Seq_val(handle);
+  snd_seq_event_t ev;
+  int ret = 0;
+
+  snd_seq_ev_clear(&ev);
+  snd_seq_ev_set_source(&ev, Int_val(port));
+  snd_seq_ev_set_subs(&ev);
+  snd_seq_ev_set_direct(&ev);
+
+  switch (Tag_val(event))
+    {
+    case 0:
+      snd_seq_ev_set_noteon
+      event = caml_alloc(1, 3);
+      Store_field(event, 0, Val_note(ev->data.note));
+      break;
+
+    case SND_SEQ_EVENT_NOTEOFF:
+      event = caml_alloc(1, 4);
+      Store_field(event, 0, Val_note(ev->data.note));
+      break;
+
+    case SND_SEQ_EVENT_CONTROLLER:
+      event = caml_alloc(1, 6);
+      Store_field(event, 0, Val_controller(ev->data.control));
+      break;
+
+    case SND_SEQ_EVENT_PGMCHANGE:
+      event = caml_alloc(1, 7);
+      Store_field(event, 0, Val_controller(ev->data.control));
+      break;
+
+    case SND_SEQ_EVENT_PITCHBEND:
+      event = caml_alloc(1, 9);
+      Store_field(event, 0, Val_controller(ev->data.control));
+      break;
+
+    default:
+      // TODO: change this number when adding new constructors...
+      event = caml_alloc(1, 10);
+      Store_field(event, 0, Val_int(ev->type));
+      break;
+    }
+
+
+  caml_release_runtime_system();
+  ret = snd_seq_event_input(seq_handle, &ev);
+  caml_acquire_runtime_system();
+
+  check_for_err(ret);
+  assert(ev);
+
+  ans = caml_alloc_tuple(2);
   Store_field(ans, 0, Val_unit);
   Store_field(ans, 1, event);
 
   CAMLreturn(ans);
 }
+*/

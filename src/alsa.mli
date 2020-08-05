@@ -235,6 +235,9 @@ module Sequencer : sig
   (** Real all possible input ports on given port. *)
   val subscribe_read_all : t -> int -> unit
 
+  (** Write all possible output ports from given port. *)
+  val subscribe_write_all : t -> int -> unit
+
   module Event : sig
     type note =
       {
@@ -270,8 +273,8 @@ module Sequencer : sig
 
   type event =
     {
-      ev_time : time;
       ev_event : Event.t;
+      ev_time : time;
     }
 
   val input_event : t -> event

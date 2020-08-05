@@ -210,6 +210,8 @@ module Sequencer = struct
 
   external subscribe_read_all : t -> int -> unit = "ocaml_snd_subscribe_read_all"
 
+  external subscribe_write_all : t -> int -> unit = "ocaml_snd_subscribe_write_all"
+
   module Event = struct
     type note =
       {
@@ -245,8 +247,8 @@ module Sequencer = struct
 
   type event =
     {
-      ev_time : time;
       ev_event : Event.t;
+      ev_time : time;
     }
 
   external input_event : t -> event = "ocaml_snd_seq_event_input"
