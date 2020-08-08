@@ -1,4 +1,4 @@
-0.3.0 (unreleased)
+0.3.0 (2020-08-08)
 =====
 
 - Switch to `bytes` for I/O operations (makes the API incompatible with previous
