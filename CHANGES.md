@@ -5,7 +5,7 @@
   versions).
 - Switch to `dune` for building.
 - Add `readn_float_ba` and `writen_float_ba`.
-- Start adding support for sequencers.
+- Start adding support for sequencers (`Sequencer` module).
 
 0.2.3 (2016-11-18)
 =====

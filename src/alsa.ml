@@ -1,5 +1,5 @@
 (*
-   Copyright 2005-2007 Savonet team
+   Copyright 2005-2020 Savonet team
 
    This file is part of Ocaml-alsa.
 
