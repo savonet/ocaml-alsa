@@ -747,8 +747,10 @@ CAMLprim value ocaml_snd_pcm_set_params(value handle, value params)
   CAMLparam2(handle, params);
 
   check_for_err(snd_pcm_hw_params(Pcm_handle_val(handle), Hw_params_val(params)));
-  /* TODO: compute real value */
-  Frame_size_val(handle) = 4;
+
+  unsigned int channels;
+  check_for_err(snd_pcm_hw_params_get_channels(Hw_params_val(params), &channels));
+  Frame_size_val(handle) = 2*channels;
 
   CAMLreturn(Val_unit);
 }
