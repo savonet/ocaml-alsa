@@ -6,16 +6,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Setup OCaml
-      uses: avsm/setup-ocaml@v1.0
-    - name: Install depext module
-      run: opam install -y depext
+      uses: avsm/setup-ocaml@v2
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
-      run: opam depext -y -i alsa
-    - name: Build locally
-      run: eval $(opam env) && dune build
-    - name: Run tests locally
-      run: eval $(opam env) && dune runtest
+      run: opam install -y -t alsa
