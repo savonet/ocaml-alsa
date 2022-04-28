@@ -19,10 +19,10 @@
 *)
 
 (**
-  * Interface with the alsa drivers.
-  *
-  * @author Samuel Mimram
-  *)
+   Interface with the alsa drivers.
+
+   @author Samuel Mimram
+*)
 
 (** Get the ALSA sound library version in ASCII format. *)
 val get_version : unit -> string
@@ -80,7 +80,11 @@ module Pcm : sig
     | Async  (** Asynchronous notification (not supported yet). *)
     | Non_blocking  (** Non blocking I/O. *)
 
+  (** Open given device (use ["defaut"] for default one) with given streams and
+      modes. *)
   val open_pcm : string -> stream list -> mode list -> handle
+
+  (** Close device. *)
   val close : handle -> unit
 
   (** Prepare PCM for use. *)
@@ -89,13 +93,14 @@ module Pcm : sig
   (** Resume from suspend, no samples are lost. *)
   val resume : handle -> unit
 
-  (** Recover the stream state from an error or suspend.
-    * This a high-level helper function building on other functions.
-    * This functions handles Interrupted, Buffer_xrun and Suspended 
-    * exceptions trying to prepare given stream for next I/O. 
-    * Raises the given exception when not recognized/used. *)
+  (** Recover the stream state from an error or suspend. This a high-level
+      helper function building on other functions. This functions handles
+      Interrupted, Buffer_xrun and Suspended exceptions trying to prepare given
+      stream for next I/O. Raises the given exception when not
+      recognized/used. *)
   val recover : ?verbose:bool -> handle -> exn -> unit
 
+  (** Start the PCM. *)
   val start : handle -> unit
 
   (** Stop a PCM preserving pending frames. *)
@@ -105,26 +110,29 @@ module Pcm : sig
   val drop : handle -> unit
 
   (** [pause hnd pause] pauses (when [pause] is [true]) or resume (when [pause]
-    * is [false]) a PCM. *)
+      is [false]) a PCM. *)
   val pause : handle -> bool -> unit
 
   val reset : handle -> unit
 
   (** Wait for a PCM to become ready. The second argument is the timeout in
-    * milliseconds (negative for infinite). Returns [false] if a timeout
-    * occured. *)
+      milliseconds (negative for infinite). Returns [false] if a timeout
+      occured. *)
   val wait : handle -> int -> bool
 
   (** [readi handle buf ofs len] reads [len] interleaved {i frames} in [buf]
-    * starting at offset [ofs] (in bytes). It returns the actual number of
-    * frames read. *)
+      starting at offset [ofs] (in bytes). It returns the actual number of
+      frames read. *)
   val readi : handle -> bytes -> int -> int -> int
 
   (** [writei handle buf ofs len] writes [len] interleaved {i frames} of [buf]
-    * starting at offset [ofs] (in bytes). *)
+      starting at offset [ofs] (in bytes). *)
   val writei : handle -> bytes -> int -> int -> int
 
+  (** Read non-interleaved frames. *)
   val readn : handle -> bytes array -> int -> int -> int
+
+  (** Write non-interleaved frames. *)
   val writen : handle -> bytes array -> int -> int -> int
   val readn_float : handle -> float array array -> int -> int -> int
   val writen_float : handle -> float array array -> int -> int -> int
