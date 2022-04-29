@@ -16,7 +16,7 @@ let () =
   let period_size = Pcm.get_period_size params in
   Printf.printf "samplerate: %d, buffer size: %d, period size: %d\n%!" samplerate buffer_size period_size;
   Pcm.prepare dev;
-  let buf = Bigarray.Array1.create Bigarray.Float32 Bigarray.C_layout (channels * period_size) in
+  let buf = Array.init channels (fun _ -> Array.make period_size 0.) in
   let t = ref 0. in
   while true do
     Printf.printf "time: %f\r%!" !t;
@@ -24,8 +24,8 @@ let () =
       let x = sin (2. *. Float.pi *. !t *. 440.) in
       t := !t +. 1. /. float samplerate;
       for c = 0 to channels - 1 do
-        buf.{channels*i+c} <- x
+        buf.(c).(i) <- x
       done
     done;
-    ignore (Pcm.writei_float_ba dev channels buf)
+    ignore (Pcm.writei_floatn dev buf 0 period_size)
   done

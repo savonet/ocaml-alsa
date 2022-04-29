@@ -137,6 +137,9 @@ module Pcm : sig
   val readn_float : handle -> float array array -> int -> int -> int
   val writen_float : handle -> float array array -> int -> int -> int
 
+  (** Write in interleaved way non-interleaved frames. *)
+  val writei_floatn : handle -> float array array -> int -> int -> int
+
   val readn_float_ba :
     handle ->
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->

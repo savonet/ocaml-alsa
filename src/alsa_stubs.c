@@ -470,6 +470,32 @@ CAMLprim value ocaml_snd_pcm_writen_float(value handle_, value fbuf, value ofs_,
   CAMLreturn(Val_int(ret));
 }
 
+CAMLprim value ocaml_snd_pcm_writei_floatn(value handle_, value fbuf, value ofs_, value len_)
+{
+  CAMLparam4(handle_, fbuf, ofs_, len_);
+  int len = Int_val(len_);
+  int ofs = Int_val(ofs_);
+  int chans = Wosize_val(fbuf);
+  snd_pcm_t *handle = Pcm_handle_val(handle_);
+  float *buf;
+  int c, i;
+  snd_pcm_sframes_t ret;
+
+  buf = malloc(chans * len * sizeof(float));
+  for(c = 0; c < chans; c++)
+    for(i = 0; i < len; i++)
+      buf[i*chans+c] = Double_field(Field(fbuf, c), i + ofs);
+
+  caml_enter_blocking_section();
+  ret = snd_pcm_writei(handle, (void*)buf, len);
+  caml_leave_blocking_section();
+
+  free(buf);
+  check_for_err(ret);
+
+  CAMLreturn(Val_int(ret));
+}
+
 CAMLprim value ocaml_snd_pcm_readn_float_ba(value handle_, value dbuf)
 {
   CAMLparam2(handle_, dbuf);

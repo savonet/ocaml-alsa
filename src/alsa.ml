@@ -115,6 +115,9 @@ module Pcm = struct
   external writen_float : handle -> float array array -> int -> int -> int
     = "ocaml_snd_pcm_writen_float"
 
+  external writei_floatn : handle -> float array array -> int -> int -> int
+    = "ocaml_snd_pcm_writei_floatn"
+
   external readn_float_ba :
     handle ->
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
