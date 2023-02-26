@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 open Alsa
 
 let period_size = 4096
