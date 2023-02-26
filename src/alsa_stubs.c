@@ -976,6 +976,23 @@ CAMLprim value ocaml_snd_pcm_set_nonblock(value handle, value nonblocking)
   CAMLreturn(Val_unit);
 }
 
+// See https://github.com/alsa-project/alsa-lib/blob/master/test/namehint.c
+CAMLprim value ocaml_snd_device_name_hint(value _card, value _iface)
+{
+  int card = Int_val(_card);
+  char* iface = String_val(_iface);
+  void **hints;
+
+  check_for_err(snd_device_name_hint(card, iface, &hints));
+  s = (char**)hints;
+  while (*n != NULL) {
+    printf("%s\n", *n);
+    n++;
+  }
+  snd_device_name_free_hint(hints);
+  CAMLreturn(Val_unit);
+}
+
 /********** Sequencer **********/
 
 static struct custom_operations seq_handle_ops =
