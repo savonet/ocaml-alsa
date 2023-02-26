@@ -63,7 +63,8 @@ val string_of_error : exn -> string
 (** Do not report errors on stderr. *)
 val no_stderr_report : unit -> unit
 
-val device_name_hints : ?card:int -> ?interface:string -> unit -> string list
+(** List all devices with name, description and IO. *)
+val device_name_hints : ?card:int -> ?interface:string -> unit -> (string * string * [`Input | `Output | `Both]) list
 
 module Pcm : sig
   (** Handle to a device. *)

@@ -65,7 +65,7 @@ let int_of_error e =
 
 let string_of_error e = string_of_error (int_of_error e)
 
-external device_name_hints : int -> string -> string list = "ocaml_snd_device_name_hint"
+external device_name_hints : int -> string -> (string * string * [`Input | `Output | `Both]) list = "ocaml_snd_device_name_hint"
 let device_name_hints ?(card=(-1)) ?(interface="pcm") () = device_name_hints card interface
 
 module Pcm = struct
