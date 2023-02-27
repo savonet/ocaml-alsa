@@ -976,6 +976,48 @@ CAMLprim value ocaml_snd_pcm_set_nonblock(value handle, value nonblocking)
   CAMLreturn(Val_unit);
 }
 
+// See https://github.com/alsa-project/alsa-lib/blob/master/test/namehint.c
+CAMLprim value ocaml_snd_device_name_hint(value _card, value _iface)
+{
+  CAMLparam2(_card, _iface);
+  CAMLlocal1(ans);
+  CAMLlocal1(tmp);
+  int card = Int_val(_card);
+  const char* iface = String_val(_iface);
+  void **hints;
+
+  check_for_err(snd_device_name_hint(card, iface, &hints));
+  char **s = (char**)hints;
+  ans = Val_int(0); // []
+  while (*s != NULL) {
+    tmp = caml_alloc(2, 0); // ::
+    Store_field(tmp, 1, ans);
+    ans = tmp;
+    
+    tmp = caml_alloc_tuple(3);
+    char *name = snd_device_name_get_hint(*s, "NAME");
+    Store_field(tmp, 0, caml_copy_string(name));
+    free(name);
+    char *desc = snd_device_name_get_hint(*s, "DESC");
+    Store_field(tmp, 1, caml_copy_string(desc));
+    free(desc);
+    char *ioid = snd_device_name_get_hint(*s, "IOID");
+    if (!ioid)
+      Store_field(tmp, 2, caml_hash_variant("Both"));
+    else if (!strcmp(ioid, "Input"))
+      Store_field(tmp, 2, caml_hash_variant("Input"));
+    else if (!strcmp(ioid, "Output"))
+      Store_field(tmp, 2, caml_hash_variant("Output"));
+    else
+      Store_field(tmp, 2, caml_hash_variant("Both"));
+    free(ioid);
+    Store_field(ans, 0, tmp);
+    s++;
+  }
+  snd_device_name_free_hint(hints);
+  CAMLreturn(ans);
+}
+
 /********** Sequencer **********/
 
 static struct custom_operations seq_handle_ops =
