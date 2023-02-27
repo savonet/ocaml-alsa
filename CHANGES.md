@@ -2,6 +2,7 @@
 =====
 
 - Add `writei_floatn`.
+- Add `device_name_hints`.
 
 0.3.0 (2020-08-08)
 =====
