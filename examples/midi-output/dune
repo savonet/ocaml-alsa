@@ -1,3 +1,1 @@
-(executable
- (name output)
- (libraries alsa unix))
+(dynamic_include ../gen/midi-output.inc)

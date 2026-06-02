@@ -18,23 +18,21 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-(**
-   Interface with the alsa drivers.
+(** Interface with the alsa drivers.
 
-   @author Samuel Mimram
-*)
+    @author Samuel Mimram *)
 
 (** Get the ALSA sound library version in ASCII format. *)
 val get_version : unit -> string
 
-(** A buffer underrun / overrun occured. *)
+(** A buffer underrun / overrun occurred. *)
 exception Buffer_xrun
 
 (** PCM is not in the right state. *)
 exception Bad_state
 
 (** A suspend event occurred (stream is suspended and waiting for an application
-  * recovery). *)
+    * recovery). *)
 exception Suspended
 
 (** Input/output error. *)
@@ -46,9 +44,9 @@ exception Device_busy
 (** Function was called with an invalid argument. *)
 exception Invalid_argument
 
-(** This error can happen when device is physically 
-  * removed (for example some hotplug devices like USB 
-  * or PCMCIA, CardBus or ExpressCard can be removed on the fly). *)
+(** This error can happen when device is physically * removed (for example some
+    hotplug devices like USB * or PCMCIA, CardBus or ExpressCard can be removed
+    on the fly). *)
 exception Device_removed
 
 exception Interrupted
@@ -56,15 +54,19 @@ exception Unknown_error of int
 
 type direction = Dir_down | Dir_eq | Dir_up
 
-(** Get an error message corresponding to an error. 
-  * Raise the given exception if it is not known. *)
+(** Get an error message corresponding to an error. * Raise the given exception
+    if it is not known. *)
 val string_of_error : exn -> string
 
 (** Do not report errors on stderr. *)
 val no_stderr_report : unit -> unit
 
 (** List all devices with name, description and IO. *)
-val device_name_hints : ?card:int -> ?interface:string -> unit -> (string * string * [`Input | `Output | `Both]) list
+val device_name_hints :
+  ?card:int ->
+  ?interface:string ->
+  unit ->
+  (string * string * [ `Input | `Output | `Both ]) list
 
 module Pcm : sig
   (** Handle to a device. *)
@@ -83,7 +85,7 @@ module Pcm : sig
     | Async  (** Asynchronous notification (not supported yet). *)
     | Non_blocking  (** Non blocking I/O. *)
 
-  (** Open given device (use ["defaut"] for default one) with given streams and
+  (** Open given device (use ["default"] for default one) with given streams and
       modes. *)
   val open_pcm : string -> stream list -> mode list -> handle
 
@@ -99,8 +101,8 @@ module Pcm : sig
   (** Recover the stream state from an error or suspend. This a high-level
       helper function building on other functions. This functions handles
       Interrupted, Buffer_xrun and Suspended exceptions trying to prepare given
-      stream for next I/O. Raises the given exception when not
-      recognized/used. *)
+      stream for next I/O. Raises the given exception when not recognized/used.
+  *)
   val recover : ?verbose:bool -> handle -> exn -> unit
 
   (** Start the PCM. *)
@@ -120,7 +122,7 @@ module Pcm : sig
 
   (** Wait for a PCM to become ready. The second argument is the timeout in
       milliseconds (negative for infinite). Returns [false] if a timeout
-      occured. *)
+      occurred. *)
   val wait : handle -> int -> bool
 
   (** [readi handle buf ofs len] reads [len] interleaved {i frames} in [buf]
@@ -137,6 +139,7 @@ module Pcm : sig
 
   (** Write non-interleaved frames. *)
   val writen : handle -> bytes array -> int -> int -> int
+
   val readn_float : handle -> float array array -> int -> int -> int
   val writen_float : handle -> float array array -> int -> int -> int
 
@@ -153,7 +156,11 @@ module Pcm : sig
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
     int
 
-  val writei_float_ba : handle -> int -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t -> int
+  val writei_float_ba :
+    handle ->
+    int ->
+    (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t ->
+    int
 
   val readn_float64 : handle -> float array array -> int -> int -> int
   val writen_float64 : handle -> float array array -> int -> int -> int
@@ -171,7 +178,7 @@ module Pcm : sig
     | St_draining  (** draining: running (playback) or stopped (capture) *)
     | St_paused  (** paused *)
     | St_suspended  (** hardware is suspended *)
-    | St_disconnected  (** hardward is disconnected *)
+    | St_disconnected  (** hardware is disconnected *)
 
   (** Get the current state. *)
   val get_state : handle -> state
@@ -195,10 +202,10 @@ module Pcm : sig
   (** Set the format of audio data. *)
   val set_format : handle -> params -> fmt -> unit
 
-  (** [set_rate_near handle params rate dir] sets the sampling rate (in Hz).
-    * If the rate is not avalaible, [dir] is used to determine the direction of
-    * the nearest available sampling rate to use . The actual sampling rate used
-    * is returned. *)
+  (** [set_rate_near handle params rate dir] sets the sampling rate (in Hz). *
+      If the rate is not available, [dir] is used to determine the direction of
+      * the nearest available sampling rate to use . The actual sampling rate
+      used * is returned. *)
   val set_rate_near : handle -> params -> int -> direction -> int
 
   (** Set the number of channels. *)
@@ -211,7 +218,6 @@ module Pcm : sig
   val get_periods_min : params -> int * direction
 
   val get_periods_max : params -> int * direction
-
   val get_period_size : params -> int
 
   (** Set the buffer size in {i frames}. *)
@@ -236,13 +242,32 @@ end
 module Sequencer : sig
   type t
 
-  val create : string -> ?blocking:bool -> [ `Input | `Output | `Duplex] -> t
-
+  val create : string -> ?blocking:bool -> [ `Input | `Output | `Duplex ] -> t
   val set_client_name : t -> string -> unit
 
-  type port_caps = Port_cap_read | Port_cap_write | Port_cap_sync_read | Port_cap_sync_write | Port_cap_duplex | Port_cap_subs_read | Port_cap_subs_write | Port_cap_no_export
+  type port_caps =
+    | Port_cap_read
+    | Port_cap_write
+    | Port_cap_sync_read
+    | Port_cap_sync_write
+    | Port_cap_duplex
+    | Port_cap_subs_read
+    | Port_cap_subs_write
+    | Port_cap_no_export
 
-  type port_type = Port_type_specific | Port_type_MIDI_generic | Port_type_MIDI_GM | Port_type_MIDI_GM2 | Port_type_MIDI_GS | Port_type_MIDI_XG | Port_type_MIDI_MT32 | Port_type_hardware | Port_type_software | Port_type_sythesizer | Port_type_port | Port_type_application
+  type port_type =
+    | Port_type_specific
+    | Port_type_MIDI_generic
+    | Port_type_MIDI_GM
+    | Port_type_MIDI_GM2
+    | Port_type_MIDI_GS
+    | Port_type_MIDI_XG
+    | Port_type_MIDI_MT32
+    | Port_type_hardware
+    | Port_type_software
+    | Port_type_sythesizer
+    | Port_type_port
+    | Port_type_application
 
   val create_port : t -> string -> port_caps list -> port_type list -> int
 
@@ -253,21 +278,19 @@ module Sequencer : sig
   val subscribe_write_all : t -> int -> unit
 
   module Event : sig
-    type note =
-      {
-        note_channel : int;
-        note_note : int;
-        note_velocity : int;
-        note_off_velocity : int;
-        note_duration : int;
-      }
+    type note = {
+      note_channel : int;
+      note_note : int;
+      note_velocity : int;
+      note_off_velocity : int;
+      note_duration : int;
+    }
 
-    type controller =
-      {
-        controller_channel : int;
-        controller_param : int;
-        controller_value : int;
-      }
+    type controller = {
+      controller_channel : int;
+      controller_param : int;
+      controller_value : int;
+    }
 
     type t =
       | System of int * int
@@ -284,14 +307,8 @@ module Sequencer : sig
   end
 
   type time = unit
-
-  type event =
-    {
-      ev_event : Event.t;
-      ev_time : time;
-    }
+  type event = { ev_event : Event.t; ev_time : time }
 
   val input_event : t -> event
-
   val output_event : t -> Event.t -> unit
 end

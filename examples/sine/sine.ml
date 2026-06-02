@@ -14,7 +14,8 @@ let () =
   Pcm.set_params dev params;
   let buffer_size = Pcm.get_buffer_size params in
   let period_size = Pcm.get_period_size params in
-  Printf.printf "samplerate: %d, buffer size: %d, period size: %d\n%!" samplerate buffer_size period_size;
+  Printf.printf "samplerate: %d, buffer size: %d, period size: %d\n%!"
+    samplerate buffer_size period_size;
   Pcm.prepare dev;
   let buf = Array.init channels (fun _ -> Array.make period_size 0.) in
   let t = ref 0. in
@@ -22,7 +23,7 @@ let () =
     Printf.printf "time: %f\r%!" !t;
     for i = 0 to period_size - 1 do
       let x = sin (2. *. Float.pi *. !t *. 440.) in
-      t := !t +. 1. /. float samplerate;
+      t := !t +. (1. /. float samplerate);
       for c = 0 to channels - 1 do
         buf.(c).(i) <- x
       done

@@ -7,10 +7,11 @@ let () =
   Printf.printf "Using ALSA %s.\n%!" (Alsa.get_version ());
   List.iter
     (fun (name, desc, io) ->
-       let io = match io with
-         | `Input -> "input"
-         | `Output -> "output"
-         | `Both -> "both"
-       in
-       Printf.printf "%s\n%s\n%s\n\n%!" name io desc
-    ) (device_name_hints ())
+      let io =
+        match io with
+          | `Input -> "input"
+          | `Output -> "output"
+          | `Both -> "both"
+      in
+      Printf.printf "%s\n%s\n%s\n\n%!" name io desc)
+    (device_name_hints ())

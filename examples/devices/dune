@@ -1,3 +1,1 @@
-(executable
- (name devices)
- (libraries alsa))
+(dynamic_include ../gen/devices.inc)

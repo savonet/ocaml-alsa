@@ -65,8 +65,12 @@ let int_of_error e =
 
 let string_of_error e = string_of_error (int_of_error e)
 
-external device_name_hints : int -> string -> (string * string * [`Input | `Output | `Both]) list = "ocaml_snd_device_name_hint"
-let device_name_hints ?(card=(-1)) ?(interface="pcm") () = device_name_hints card interface
+external device_name_hints :
+  int -> string -> (string * string * [ `Input | `Output | `Both ]) list
+  = "ocaml_snd_device_name_hint"
+
+let device_name_hints ?(card = -1) ?(interface = "pcm") () =
+  device_name_hints card interface
 
 module Pcm = struct
   type handle
@@ -131,7 +135,11 @@ module Pcm = struct
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array ->
     int = "ocaml_snd_pcm_writen_float_ba"
 
-  external writei_float_ba : handle -> int -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t -> int = "ocaml_snd_pcm_writei_float_ba"
+  external writei_float_ba :
+    handle ->
+    int ->
+    (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t ->
+    int = "ocaml_snd_pcm_writei_float_ba"
 
   external readn_float64 : handle -> float array array -> int -> int -> int
     = "ocaml_snd_pcm_readn_float64"
@@ -175,15 +183,19 @@ module Pcm = struct
   external get_periods_min : params -> int * direction
     = "ocaml_snd_pcm_get_periods_min"
 
-  external set_buffer_size : handle -> params -> int -> unit = "ocaml_snd_pcm_set_buffer_size"
+  external set_buffer_size : handle -> params -> int -> unit
+    = "ocaml_snd_pcm_set_buffer_size"
 
-  external set_buffer_size_near : handle -> params -> int -> int = "ocaml_snd_pcm_set_buffer_size_near"
+  external set_buffer_size_near : handle -> params -> int -> int
+    = "ocaml_snd_pcm_set_buffer_size_near"
 
   external get_buffer_size : params -> int = "ocaml_snd_pcm_get_buffer_size"
 
-  external get_buffer_size_min : params -> int = "ocaml_snd_pcm_get_buffer_size_min"
+  external get_buffer_size_min : params -> int
+    = "ocaml_snd_pcm_get_buffer_size_min"
 
-  external get_buffer_size_max : params -> int = "ocaml_snd_pcm_get_buffer_size_max"
+  external get_buffer_size_max : params -> int
+    = "ocaml_snd_pcm_get_buffer_size_max"
 
   external set_nonblock : handle -> bool -> unit = "ocaml_snd_pcm_set_nonblock"
 
@@ -196,44 +208,63 @@ module Sequencer = struct
 
   external create : string -> int -> int -> t = "ocaml_snd_seq_open"
 
-  let create name ?(blocking=true) stream =
+  let create name ?(blocking = true) stream =
     let stream =
-      match stream with
-      | `Input -> 2
-      | `Output -> 1
-      | `Duplex -> 3
+      match stream with `Input -> 2 | `Output -> 1 | `Duplex -> 3
     in
     let mode = if blocking then 0 else 1 in
     create name stream mode
 
-  external set_client_name : t -> string -> unit = "ocaml_snd_seq_set_client_name"
+  external set_client_name : t -> string -> unit
+    = "ocaml_snd_seq_set_client_name"
 
-  type port_caps = Port_cap_read | Port_cap_write | Port_cap_sync_read | Port_cap_sync_write | Port_cap_duplex | Port_cap_subs_read | Port_cap_subs_write | Port_cap_no_export
+  type port_caps =
+    | Port_cap_read
+    | Port_cap_write
+    | Port_cap_sync_read
+    | Port_cap_sync_write
+    | Port_cap_duplex
+    | Port_cap_subs_read
+    | Port_cap_subs_write
+    | Port_cap_no_export
 
-  type port_type = Port_type_specific | Port_type_MIDI_generic | Port_type_MIDI_GM | Port_type_MIDI_GM2 | Port_type_MIDI_GS | Port_type_MIDI_XG | Port_type_MIDI_MT32 | Port_type_hardware | Port_type_software | Port_type_sythesizer | Port_type_port | Port_type_application
+  type port_type =
+    | Port_type_specific
+    | Port_type_MIDI_generic
+    | Port_type_MIDI_GM
+    | Port_type_MIDI_GM2
+    | Port_type_MIDI_GS
+    | Port_type_MIDI_XG
+    | Port_type_MIDI_MT32
+    | Port_type_hardware
+    | Port_type_software
+    | Port_type_sythesizer
+    | Port_type_port
+    | Port_type_application
 
-  external create_port : t -> string -> port_caps list -> port_type list -> int = "ocaml_snd_seq_create_port"
+  external create_port : t -> string -> port_caps list -> port_type list -> int
+    = "ocaml_snd_seq_create_port"
 
-  external subscribe_read_all : t -> int -> unit = "ocaml_snd_subscribe_read_all"
+  external subscribe_read_all : t -> int -> unit
+    = "ocaml_snd_subscribe_read_all"
 
-  external subscribe_write_all : t -> int -> unit = "ocaml_snd_subscribe_write_all"
+  external subscribe_write_all : t -> int -> unit
+    = "ocaml_snd_subscribe_write_all"
 
   module Event = struct
-    type note =
-      {
-        note_channel : int;
-        note_note : int;
-        note_velocity : int;
-        note_off_velocity : int;
-        note_duration : int;
-      }
+    type note = {
+      note_channel : int;
+      note_note : int;
+      note_velocity : int;
+      note_off_velocity : int;
+      note_duration : int;
+    }
 
-    type controller =
-      {
-        controller_channel : int;
-        controller_param : int;
-        controller_value : int;
-      }
+    type controller = {
+      controller_channel : int;
+      controller_param : int;
+      controller_value : int;
+    }
 
     type t =
       | System of int * int
@@ -250,14 +281,8 @@ module Sequencer = struct
   end
 
   type time = unit
-
-  type event =
-    {
-      ev_event : Event.t;
-      ev_time : time;
-    }
+  type event = { ev_event : Event.t; ev_time : time }
 
   external input_event : t -> event = "ocaml_snd_seq_event_input"
-
   external output_event : t -> Event.t -> unit = "ocaml_snd_seq_event_output"
 end

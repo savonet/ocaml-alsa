@@ -190,7 +190,7 @@ CAMLprim value ocaml_snd_int_of_error(value name)
     CAMLreturn(Val_int(-EINTR));
   if (!strcmp(s,"alsa_exn_device_busy"))
     CAMLreturn(Val_int(-ENODEV));
- 
+
   caml_failwith("unknown value");
 }
 
@@ -993,7 +993,7 @@ CAMLprim value ocaml_snd_device_name_hint(value _card, value _iface)
     tmp = caml_alloc(2, 0); // ::
     Store_field(tmp, 1, ans);
     ans = tmp;
-    
+
     tmp = caml_alloc_tuple(3);
     char *name = snd_device_name_get_hint(*s, "NAME");
     Store_field(tmp, 0, caml_copy_string(name));
@@ -1291,4 +1291,3 @@ CAMLprim value ocaml_snd_seq_event_output(value handle, value event)
 
   CAMLreturn(Val_unit);
 }
-
